@@ -1,0 +1,100 @@
+﻿<div id="app" class="mx-auto px-5 d-flex flex-column">
+    <div class="mb-3 w-100">
+        <a  type="button" class="btn btn-success ms-4" href="create">Create ingredient</a>
+    </div>
+    <div v-if="error" class="alert alert-danger m-auto w-25" role="alert">
+        <span class="text-danger">{{errorMessage}}</span>
+    </div>
+    <div>
+        <article v-if="isLoaded" id="scroll-ingredient-user-index">
+            <section v-for="ingredient in ingredients" class="ingredients fit-content flex-column p-2">
+                <div class="mb-2">
+                    <input type="button" v-on:click.prevent="deleteIngredient(ingredient.id)" class="btn btn-danger" value="Delete">
+                    <input type="button" v-on:click="updateIngredient(ingredient.id)" class="btn btn-primary" value="Update">
+                </div>
+                <div class="ingredient-index">
+                    <img class="ingredient-index-image" v-bind:src="ingredient.picture" />
+                    <h3>{{ingredient.name}}</h3>
+                </div>
+
+            </section>
+        </article>
+        <div v-else class="spinner-border text-primary" role="status">
+            <span class="sr-only">Loading...</span>
+        </div>
+    </div>
+
+</div>
+
+@section scripts{
+    <script>
+        var ingredientOfUserapiURL = 'https://localhost:44394/api/Ingredients/user';
+        var deleteUrl = "https://localhost:44394/api/Ingredients/";
+        let token = localStorage.getItem('token');
+        var axiosConfig = { headers: { Authorization: `Bearer ${token}` } };
+
+        var app = new Vue({
+        el:"#app",
+        data:{        
+            ingredients: null,
+            error: false,
+            errorMessage: "",
+            errorCode:"",
+            ingredientsIsSelected: false,
+            isLoaded: false,
+            ingredientIsDeleted:false
+        },
+            created: async function () {
+            if (token == null) {
+                window.location.href = "/account/login";
+            }  
+            this.ingredients = await this.fetchingredients();      
+        },
+        methods: {
+            fetchingredients: async function () {
+                let result = await axios.get(ingredientOfUserapiURL, axiosConfig)
+                    .then(response => response.data)
+                    .catch(error => {
+                        this.error = true;
+                        this.errorCode = error.response.data.status;
+                        this.errorMessage = error;
+                    })
+                    .finally(this.isLoaded = true)
+                if (this.error == false) {
+                    return result;
+                }
+                if (this.errorCode == 404) {
+                    this.error = false;
+                    this.errorMessage = null;
+                }
+            },
+            deleteIngredient: async function (id) {
+                this.error = false;
+                this.errorMessage = "";
+                const axiosConfig = {
+                    headers: { Authorization: `Bearer ${token}` },
+                    params: {
+                        ID: id
+                    },
+                };
+                await axios.delete(deleteUrl, axiosConfig)
+                    .then(response => response)
+                    .catch(error => {
+                        this.error = true;                        
+                        this.errorMessage = error.response.data[0].errorMessage;
+                     })                    
+                if (this.error == false) {
+                    this.ingredientIsDeleted = true
+                    this.ingredients = await this.fetchingredients();
+                }
+                
+            },
+            updateIngredient: function (id) {
+                window.location.href = `../ingredients/update/${id}`;
+            }
+        },
+            
+    })
+
+    </script>
+}

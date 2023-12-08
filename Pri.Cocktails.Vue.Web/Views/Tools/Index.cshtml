@@ -1,0 +1,95 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+
+<div id="app" class="mx-auto p-5 d-flex flex-column">
+    <div class="mb-3 w-100">
+        <a type="button" class="btn btn-success ms-4" href="tools/create">Create tool</a>
+    </div>
+    <div v-if="error" class="alert alert-danger m-auto w-25" role="alert">
+        <span class="text-danger">{{errorMessage}}</span>
+    </div> 
+    <div>
+        <article v-if="isLoaded">
+            <section v-for="tool in tools" class="tools flex-column p-2">
+                <div class="mb-2">
+                    <input type="button" v-on:click.prevent="deleteTool(tool.id)" class="btn btn-danger" value="Delete">
+                    <input type="button" v-on:click="updateTool(tool.id)" class="btn btn-primary" value="Update">
+                </div>
+                <div class="ingredient-index">
+                    <img class="ingredient-index-image" v-bind:src="tool.picture" />
+                    <h3>{{tool.name}}</h3>
+                </div>
+
+            </section>
+        </article>
+        <div v-else class="spinner-border text-primary" role="status">
+            <span class="sr-only">Loading...</span>
+        </div>
+    </div>
+
+</div>
+
+@section scripts{
+    <script>
+var apiURL = 'https://localhost:44394/api/Tools';
+let token = localStorage.getItem('token');
+var axiosConfig = { headers: { Authorization: `Bearer ${token}` } };
+var ingredients = new Vue({
+el: '#app',
+data: {
+    tools: null,
+    error: false,
+    errorMessage: "",
+    toolIsDeleted:false,
+    isLoaded : false,
+},
+    created: async function () {
+        if (token == null) {
+            window.location.href = "/account/login";
+        }
+        this.tools = await this.getTools();       
+    },
+methods: {
+    getTools: async function () {
+        let response = "";
+        response = await axios.get(apiURL)
+            .then(response => response)
+            .catch(error => {
+                console.log(error);
+                this.error = true;
+            })
+            .finally(() => { this.isLoaded = true; })
+        if (this.error == false) {
+            return response.data;
+        }
+    },
+    deleteTool: async function (id) {
+        this.error = false;
+        this.errorMessage = "";
+        const axiosConfig = {
+            headers: { Authorization: `Bearer ${token}` },
+            params: {
+                ID: id
+            },
+        };
+        await axios.delete(apiURL, axiosConfig)
+            .then(response => response)
+            .catch(error => {
+                this.error = true;
+                this.errorMessage = error.response.data[0].errorMessage;
+            })
+        if (this.error == false) {
+            this.toolIsDeleted = true
+            this.tools = await this.getTools();
+        }
+
+    },
+    updateTool: function (id) {
+        window.location.href=`tools/update/${id}`
+    }
+}
+});
+    </script>
+}

@@ -1,0 +1,353 @@
+﻿/* Please see documentation at https://docs.microsoft.com/aspnet/core/client-side/bundling-and-minification
+for details on configuring this project to bundle and minify static web assets. */
+
+a.navbar-brand {
+  white-space: normal;
+  text-align: center;
+  word-break: break-all;
+}
+
+/* Provide sufficient contrast against white background */
+a {
+  color: #0366d6;
+}
+
+.btn-primary {
+  color: #fff;
+  background-color: #1b6ec2;
+  border-color: #1861ac;
+}
+
+.nav-pills .nav-link.active, .nav-pills .show > .nav-link {
+  color: #fff;
+  background-color: #1b6ec2;
+  border-color: #1861ac;
+}
+
+/* Sticky footer styles
+-------------------------------------------------- */
+html {
+  font-size: 14px;
+}
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+    
+  }
+}
+
+.border-top {
+  border-top: 1px solid #e5e5e5;
+}
+.border-bottom {
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.box-shadow {
+  box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .05);
+}
+
+button.accept-policy {
+  font-size: 1rem;
+  line-height: inherit;
+}
+
+/* Sticky footer styles
+-------------------------------------------------- */
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+    /* Margin bottom by footer height */
+    margin-bottom: 60px;
+    overflow: auto;
+}
+.footer {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  white-space: nowrap;
+  line-height: 60px; /* Vertically center the text there */
+}
+
+.navbar-expand-sm {
+  padding-left:10px;
+}
+
+input[type=text]:disabled{ 
+    background-color:lightgray;
+}
+* {     
+    font-family: Arial, Helvetica, sans-serif;
+
+}
+.fit-content{    
+    height:fit-content;
+}
+
+#table-category table{
+    width: 100%;
+    caption-side: top;
+}
+caption {
+    background-color: rgba(0, 0, 0, 0.75);
+    border-top-left-radius: 15px;
+    border-top-right-radius: 15px;
+    font-size: 2em;
+    color:white;
+    text-align: center;
+}
+h1{
+    color:white;
+}
+
+.title {
+    font-size: 1.5em;
+    font-weight: bold;
+}
+
+.quote {
+    color: red;
+    font-weight: bold;
+    font-style: italic;
+}
+
+#index-bar {
+    background-image: url("../images/bar-background.jpg");
+    background-size: cover;
+    content: " ";
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    position: absolute;
+    z-index: -1;
+}
+
+#cocktail-details, #app {
+    min-height: 80vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: fit-content;
+}
+
+article#scroll {
+    overflow-y: auto;
+    min-height: 80vh;
+    max-height: 80vh;
+    width: 98vw;
+    margin: 0px;
+}
+
+article#scroll-search {
+    overflow-y: auto;
+    min-height: 69vh;
+    max-height: 69vh;
+    width: 98vw;
+    margin: 0px;
+}
+
+article#scroll-ingredient-user-index {
+    overflow-y: auto;
+    min-height: 78vh;
+    max-height: 78vh;
+    width: 100vw;
+    margin: 0px;
+}
+
+.cocktails-images {
+    max-width: 100px;
+    max-height: 150px
+}
+.ingredient-index,.glassType-index {
+    min-width: 250px;
+    text-align: center;
+}
+
+.ingredient-index-image {
+    max-width: 100px;
+    height: 150px;
+    font-size: 1.5em;
+    font-weight: bold;
+    color: lightgray;
+}
+.picture-big {
+    max-height: 120px;
+    min-height: 120px;
+    max-width: 150px;
+}
+.ingredients,.tools,.glassTypes {
+    background-color: rgba(0, 0, 0, 0.60);
+    color:white;
+    width: fit-content;
+    margin: 10px 10px 10px 0;
+    border: 2px solid black;
+    border-radius: 25px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.ingredient {
+    width: 30%;
+    word-wrap: break-word;
+}
+
+.cocktail-section:hover, .ingredients:hover, .tools:hover,.glassTypes:hover {
+    box-shadow: 4px 4px 15px 0px #000000;
+    background-color: rgba(255, 255, 255, 0.4);
+    color: black;
+}
+
+.cocktail-section {
+    height: fit-content;
+    background-color: rgba(0, 0, 0, 0.60);
+    width: fit-content;
+    font-family: Arial, Helvetica, sans-serif;
+    border: 1px solid black;
+    border-radius: 25px;
+    padding: 5px;
+    display: flex;
+    color: white;
+}
+#create-cocktail{
+    min-width:fit-content;
+}
+
+
+.background {
+    background-color: rgba(0, 0, 0, 0.80);
+    border-radius:25px;
+    color:white;
+}
+
+
+
+.tool-images, .ingredient-images {
+    max-width: 50px;
+    max-height: 50px;
+}
+
+.tool figcaption, .ingredient figcaption {
+    font-size: 1em;
+}
+
+.black-and-white {     
+    color: white;   
+    background-color: rgba(0, 0, 0, 0.80);
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 1em;
+    padding: 10px;
+    border-radius: 25px;
+    display: flex;
+    justify-content:center;
+    flex-wrap:wrap;
+
+}
+
+article {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    text-align: left;
+    width: 100%;
+}
+section{
+    max-height:fit-content !important;
+}
+.active {
+    background-color: red;
+}
+p.item{
+    word-wrap:anywhere;
+}
+p.item:hover:not(.active) {
+    background-color: rgba(255, 255, 255, 0.4);
+}
+
+.preview {
+    padding: 10px;
+    min-height: 100px;
+    border: solid 1px red;
+    border-radius: 10px;
+}
+/*menu*/
+#account-menu {
+    left: -115px;
+    top: 50px;
+    text-align: right;
+    padding-right: 5px;
+}
+
+#my-menu {
+    top: 50px;
+}
+
+.navbar-light .navbar-nav .nav-link {
+    color: black;
+}
+
+.nav-item a:hover {
+    color: var(--bs-primary) !important;
+}
+
+#active-menu-item a {
+    color: var(--bs-primary) !important;
+    border-bottom: 2px solid var(--bs-primary);
+    font-size: 1.1em;
+}
+
+
+@media(min-width:768px){
+#table-category {
+    width: 75%;
+}
+
+* {
+    font-size: 1em;
+}
+
+.black-and-white {
+    flex-wrap: nowrap;
+}
+.picture-big {
+    max-height: 150px;
+    max-width: 200px;
+}
+
+.cocktail-section {
+    min-width: 200px;    
+}
+
+.cocktails-images {
+    max-width: 150px;
+    max-height: 250px
+}
+
+.tool-images, .ingredient-images {
+    max-width: 150px;
+    max-height: 100px;
+    margin-left: 5px;
+}
+
+
+.title {
+    font-size: 1.5em;
+    font-weight: bold;    
+}
+
+}
+
+@media(min-width:768px) and (max-width:1350px) {
+#table-category{
+    width:75%;
+}
+.black-and-white {
+    flex-wrap: wrap;
+}
+}
+
+

@@ -1,0 +1,89 @@
+﻿<div id="app" class="d-flex flex-column justify-content-start">
+    <div id="searchbar" class="input-group mb-3 w-75 mt-5 mb-lg-5">
+        <input id="search" type="text" class="form-control" v-model="searchItem" v-on:keyup.enter="search()" placeholder="Search" aria-label="Recipient's username" aria-describedby="button-addon2">
+        <button class="btn btn-primary" type="button" v-on:click="search()" id="button-addon2"><i class="fas fa-search"></i></button>
+    </div>
+    <article v-if="isLoaded" class="d-flex flex-wrap" id="scroll-search">
+        <section v-for="cocktail in cocktails" v-on:click="getDetails(cocktail.id)" class="d-flex flex-column flex-wrap cocktail-section m-1 mb-5">
+            <div class="d-flex justify-content-center align-items-center flex-column mb-2 ingredient-index">
+                <h3 class="title">{{cocktail.name}}</h3>
+                <img class="picture-big" v-bind:src="cocktail.picture" />
+            </div>
+        </section>
+    </article>
+    <div v-else class="spinner-border text-primary" role="status">
+        <span class="sr-only">Loading...</span>
+    </div>
+
+</div>
+
+@section scripts{
+
+    <script>
+
+        var token = localStorage.getItem("token");
+        var cocktailsapiURL ='https://localhost:44394/api/Cocktails';
+
+        var app = new Vue({
+            el: '#app',
+            data: {                
+                isLoaded:false,
+                title: "Hello from vue",
+                searchItem: "",
+                cocktails: null,
+                currentData: null,
+                currentCocktail:null,
+                error: false,
+                errorMessage: "",
+
+            },
+            created: async function () {
+                this.currentData = await this.getCocktails(cocktailsapiURL);
+                this.cocktails = this.currentData;
+            },
+            methods: {
+                getCocktails: async function (apiUrl) {
+                    let response = "";
+                    response = await axios.get(`${apiUrl}`)
+                        .then(response => response)
+                        .catch(error => {
+                            this.error = true;
+                            this.errorMessage = error;
+                        })
+                        .finally(() => { this.isLoaded = true; });
+                    if (this.error !== true) {
+                        return response.data
+                    }
+                },
+                getDetails: function (id) {
+                    window.location.href = `../cocktails/details/${id}`
+
+                },
+                search: function () {                    
+                    this.cocktails = [];
+                    
+                    this.currentData.forEach(prop => {
+                        this.currentCocktail = prop;
+                        this.loopObject(prop);
+                    });
+
+                },
+                loopObject: function (prop) {
+                    for (key in prop) {
+                        if (typeof prop[key] != "object" && isNaN(prop[key]) && key != "picture" ) {
+                            let item = prop[key].toUpperCase();
+                            if (item.includes(this.searchItem.toUpperCase()))
+                            {
+                                if (!this.cocktails.includes(this.currentCocktail)) this.cocktails.push(this.currentCocktail)
+                            };
+                        } else if (typeof prop[key] == "object" && key != "instrucktions") { this.loopObject(prop[key]);}
+
+                    }
+                }
+            }
+          
+
+
+        });
+    </script>
+}

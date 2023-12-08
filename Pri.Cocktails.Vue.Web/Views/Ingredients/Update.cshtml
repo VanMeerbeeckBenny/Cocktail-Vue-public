@@ -1,0 +1,144 @@
+﻿<div id="app" class="d-flex flex-column">
+    <div v-if="error" class="alert alert-danger w-25" role="alert">
+        <p class="text-danger" v-for="error in userMessage">{{error[0]}}</p>
+    </div>
+    <div v-if="succes" class="alert alert-success w-25" role="alert">
+        <p class="text-success">{{userMessage}}</p>
+    </div>
+    <form v-on:submit.prevent="createIngredient" enctype="multipart/form-data" class="col col-lg-5 mx-auto background p-5">
+        <h1>Update ingredient</h1>
+        <div class="form-group">
+            <label>Name:</label>
+            <input v-model="ingredientModel.name" class="form-control" type="text">
+            <span class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <label></label>
+            <select class="form-select" v-model="ingredientModel.selectedIngredientTypeId">
+                <option v-for="ingredientType in ingredientTypes" v-bind:value="ingredientType.id">{{ingredientType.name}}</option>
+            </select>
+            <span class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <label>Image</label>
+            <input ref="image" type="file" class="form-control">
+            <span class="text-danger"></span>
+        </div>    
+      
+        <div class="btn-group mt-4 w-100" role="group" aria-label="button group">
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </div>
+
+    </form>
+
+</div>
+
+@section scripts{
+    <script>
+        var ingredientApiURL= 'https://localhost:44394/api/Ingredients/';
+        var ingredientTypeApiURL = 'https://localhost:44394/api/IngredientTypes/';
+        var axiosConfig = {
+            headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+        };
+        var app = new Vue({
+            el: "#app",
+            data: {
+                ingredientTypes: null,
+                ingredient:null,
+                error: false,
+                succes: false,
+                errors: null,
+                userMessage: "",
+                succesMessage :"",
+                ingredientModel: {
+                    id: "",
+                    name: "",
+                    selectedIngredientTypeId:"",
+                    selectedIngredientType: "",
+                },              
+            },
+            created: async function () {
+                let token = localStorage.getItem("token");
+                if (token == null) {
+                    window.location.href = "/account/login";
+                }
+                this.ingredientTypes = await this.getIngredientsTypes(ingredientTypeApiURL);
+                await this.getIngredient();
+            },
+            methods: {
+                getIngredient: async function (apiUrl) {
+
+                    let response = "";
+                    response = await axios.get(`${ingredientApiURL}@ViewBag.id`)
+                        .then(response => response.data)
+                        .catch(error => {
+                            this.error = true;
+                            this.errorMessage = error;
+                        })
+                    if (this.error !== true) {
+                        this.ingredient = response[0];
+                        this.ingredientModel.id = this.ingredient.id;
+                        this.ingredientModel.name = this.ingredient.name;
+                        this.ingredientModel.selectedIngredientType = this.ingredient.ingredientType;
+                        this.ingredientModel.selectedIngredientTypeId = this.ingredient.ingredientTypeId;
+
+                    }
+
+                },
+                getIngredientsTypes: async function (apiUrl) {
+
+                    let response = "";
+                    response = await axios.get(ingredientTypeApiURL, axiosConfig)
+                        .then(response => response)
+                        .catch(error => {
+                            this.error = true;
+                            this.errorMessage = error;
+                        })
+                    if (this.error !== true) {
+                        return response.data
+                    }
+                },
+                setId: function (e) {
+                    this.ingredientModel.selectedIngredientTypeId = e.target.options[e.target.options.selectedIndex].id;
+                },
+                createIngredient: async function () {
+                    this.error = false;
+                    this.succes = false;
+                    let formData = new FormData();
+                    formData.append("Id", this.ingredientModel.id);
+                    formData.append("IngredientTypeId", this.ingredientModel.selectedIngredientTypeId);
+                    formData.append("name", this.ingredientModel.name);
+
+                    let image = this.$refs.image.files[0] == "undefined" ? null : this.$refs.image.files[0];
+                    formData.append("Picture", image);
+                    let response = await axios.put(ingredientApiURL, formData, axiosConfig)
+                        .then(response => response)
+                        .catch(error => {
+                            this.error = true;
+                            this.errors = error;
+                        })                      
+
+                    if (this.error == false) {
+                        this.succes = true;
+                        this.userMessage = "Ingredient Updated succefully!!";
+                    } else {
+                        let error = "";
+                        if (typeof this.errors.response.data.errors != "object") {
+                            this.userMessage = {
+                                errors: []
+                            }
+                            error = this.errors.response.data;
+                            this.userMessage.errors.push(error[0].errorMessage);
+                        } else {
+                            this.userMessage = this.errors.response.data.errors;
+                        }
+
+                    }
+
+                }
+            }
+
+        })
+
+    </script>
+}

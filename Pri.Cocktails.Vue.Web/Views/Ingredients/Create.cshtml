@@ -1,0 +1,108 @@
+﻿<div id="app" class="d-flax flex-column">    
+    <div v-if="error" class="alert alert-danger w-25" role="alert">
+        <p class="text-danger" v-for="error in userMessage">{{error[0]}}</p>
+    </div>
+    <div v-if="succes" class="alert alert-success w-25" role="alert">
+        <p class="text-success">{{userMessage}}</p>
+    </div>    
+    <form v-on:submit.prevent="createIngredient" enctype="multipart/form-data" class="col col-lg-7 mx-auto background p-5">
+        <h1>Create ingredient</h1>
+        <div class="form-group">
+            <label>Name:</label>
+            <input v-model="ingredientModel.name" class="form-control" type="text">
+            <span class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <label></label>
+            <select class="form-select" v-model="ingredientModel.selectedIngredientType">
+                <option v-for="ingredientType in ingredientTypes" v-bind:value="ingredientType.id">{{ingredientType.name}}</option>
+            </select>
+            <span class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <label>Image</label>
+            <input ref="image" type="file" class="form-control">
+            <span class="text-danger"></span>
+        </div>
+        <div class="btn-group mt-4 w-100" role="group" aria-label="button group">
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </div>
+      
+    </form>
+
+</div>
+
+@section scripts{
+    <script>
+        var ingredientApiURL= 'https://localhost:44394/api/Ingredients/';
+        var ingredientTypeApiURL = 'https://localhost:44394/api/IngredientTypes/';
+        var axiosConfig = {
+            headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+        };
+        var app = new Vue({
+            el: "#app",
+            data: {               
+                ingredientTypes: null,
+                error: false,
+                succes: false,
+                errors: null,
+                userMessage: "",
+                succesMessage :"",
+                ingredientModel: {
+                    name: '',
+                    selectedIngredientType: '',                   
+                },             
+            },
+            created: async function () {
+                let token = localStorage.getItem("token");
+                if (token == null) {
+                    window.location.href = "/account/login";
+                }
+                this.ingredientTypes = await this.getIngredientsTypes(ingredientTypeApiURL);
+            },
+            methods: {               
+                getIngredientsTypes: async function (apiUrl) {
+
+                    let response = "";
+                    response = await axios.get(ingredientTypeApiURL, axiosConfig)
+                    .then(response => response)
+                    .catch(error => {
+                        this.error = true;
+                        this.errorMessage = error;
+                    })
+                if (this.error !== true) {
+                    return response.data
+                }
+                },
+                createIngredient: async function () {
+                    this.error = false;
+                    this.succes = false;
+                    let formData = new FormData();
+                    formData.append("IngredientTypeId", this.ingredientModel.selectedIngredientType);
+                    formData.append("name", this.ingredientModel.name);
+                    
+
+                    let image = this.$refs.image.files[0] == "undefined" ? null : this.$refs.image.files[0];
+                    formData.append("Picture",image);
+                    let response = await axios.post(ingredientApiURL, formData, axiosConfig)
+                        .then(response => response)
+                        .catch(error => {
+                            this.error = true;
+                            this.errors = error;
+                        })                      
+
+                    if (this.error == false) {
+                        this.succes = true;
+                        this.userMessage = "Ingredient added succefully!!"
+                    } else {
+                        this.userMessage = this.errors.response.data.errors;
+                    }
+                    
+                }
+
+            }
+
+        })
+
+    </script>
+}

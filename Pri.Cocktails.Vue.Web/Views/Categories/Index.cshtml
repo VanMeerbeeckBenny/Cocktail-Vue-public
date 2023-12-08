@@ -1,0 +1,171 @@
+﻿<div id="app" class="d-flex flex-column justify-content-center fit-content">
+    <div v-if="error" v-for="errormessage in userMessage" class="alert-danger text-danger mb-4 p-2">{{errormessage[0]}}</div>
+    <div v-if="succes" class="alert alert-success w-25" role="alert">
+        <p class="text-success">{{userMessage}}</p>
+    </div>
+    <div class="mx-auto p-3" id="table-category">
+
+        <table class="table table-dark table-striped">
+            <caption>Categories</caption>
+            <tbody>
+                <tr v-for="category in categories ">
+                    <th><input type="text" class="w-100" v-model:value="category.name" v-bind:id="category.id" disabled /></th>
+                    <td><input type="button" class="btn btn-primary w-100" v-on:click="enable" value="Enable" /></td>
+                    <td><input type="button" class="btn btn-warning w-100" value="Update" v-on:click="updateCategorie" disabled /></td>
+                    <td><input type="button" class="btn btn-danger w-100" value="Delete" v-on:click="deleteCategorie" disabled /></td>
+                </tr>
+            </tbody>
+            <tfoot>
+                <tr>
+                    <th colspan="2"><input type="text" class="w-100" v-model:value="newCategoryName"/></th>
+                    <td colspan="2"><input type="button" class="btn btn-success w-100" v-on:click="createCategory" value="Create" /></td>             
+                </tr>
+            </tfoot>       
+        </table>
+    </div>
+</div>
+@section scripts{
+    <script>
+var categoriesApiURL = 'https://localhost:44394/api/Categories';
+let token = localStorage.getItem('token');
+var axiosConfig = { headers: { Authorization: `Bearer ${token}` } };
+var ingredients = new Vue({
+el: '#app',
+data: {
+    categories: null,
+    error: false,
+    succes: false,
+    errorMessage: "",
+    userMessage:"",
+    categoriesIsDeleted:false,
+    isLoaded: false,
+    newCategoryName:"",
+    selectedCategory: {
+        id: "",
+        name:""
+    }    
+},
+    created: async function () {
+        if (token == null) {
+            window.location.href = "/account/login";
+        }
+        this.categories = await this.getCategories();
+    },
+methods: {
+    getCategories: async function () {
+        let response = "";
+        response = await axios.get(categoriesApiURL)
+            .then(response => response)
+            .catch(error => {
+                console.log(error);
+                this.error = true;
+            })
+            .finally(() => { this.isLoaded = true; })
+        if (this.error == false) {
+            return response.data;
+        }
+    },
+    deleteCategorie: async function () {
+        this.error = false;
+        this.errorMessage = "";
+        let errors = "";
+        const axiosConfig = {
+            headers: { Authorization: `Bearer ${token}` },
+            params: {
+                ID: this.selectedCategory.id
+            },
+        };
+        await axios.delete(categoriesApiURL, axiosConfig)
+            .then(response => response)
+            .catch(error => {
+                this.error = true;
+                errors = error;
+            })
+        if (this.error == false) {
+            this.categoriesIsDeleted = true
+            this.categories = await this.getCategories();
+        } else {
+            if (typeof errors.response.data.errors != "object") {
+                this.userMessage = {
+                    errors: []
+                }
+                this.userMessage.errors.push(errors.response.data[0].errorMessage);
+            } else this.userMessage = errors.response.data[0].errorMessage;
+        }
+
+    },
+    createCategory: async function () {
+        this.error = false;
+        this.succes = false;
+        let toCreateCategorie = {
+            name:this.newCategoryName
+        };
+        await axios.post(categoriesApiURL, toCreateCategorie , axiosConfig)
+            .then(response => response)
+            .catch(error => {
+                this.error = true;
+                this.errors = error;
+            })           
+
+        if (this.error == false) {
+            this.succes = true;
+            this.userMessage = "Categorie succefully created!!";
+            this.categories =await this.getCategories();
+        } else {
+            this.userMessage = this.errors.response.data.errors;
+        }
+    },
+    updateCategorie: async function () {
+        let textInput = document.getElementById(this.selectedCategory.id);
+        this.selectedCategory.name = textInput.value;
+        this.error = false;
+        this.succes = false;
+        
+        await axios.put(categoriesApiURL, this.selectedCategory, axiosConfig)
+            .then(response => response)
+            .catch(error => {
+                this.error = true;
+                this.errors = error;
+            })        
+
+        if (this.error == false) {
+            this.succes = true;
+            this.userMessage = "Categorie Updated succefully!!"
+        } else {
+            this.userMessage = this.errors.response.data.errors;
+        }
+
+    },
+    enable: function (e) {
+        this.resetEnable(e);
+        let parent = e.currentTarget.parentNode.parentNode;
+        [].forEach.call(parent.children, tr => {           
+            let input = tr.firstChild;
+            if (input.value != "Enable") {
+                if (input.disabled == false) input.disabled = true;
+                else {
+                    input.disabled = false;
+                    if (input.type == "text") {
+                        this.selectedCategory.name = input.value;
+                        this.selectedCategory.id = input.id;
+                    }
+                }                
+            }
+        })     
+    },
+    resetEnable: function (e) {
+        let parent = e.currentTarget.parentNode.parentNode.parentNode;
+        [].forEach.call(parent.children, tr => {
+            [].forEach.call(tr.children,td => {
+                let input = td.firstChild;
+                if (input.value != "Enable") {
+                    input.disabled = true;
+                }
+            })
+          
+        })
+    }
+}
+});
+    </script>
+}

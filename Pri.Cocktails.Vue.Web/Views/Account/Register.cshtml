@@ -1,0 +1,189 @@
+﻿<div id="app" class="d-flex flex-column">
+    <div v-if="error" class="alert alert-danger w-50" role="alert">
+        <p class="text-danger" v-for="error in errorMessage">{{error[0]}}</p>
+    </div>
+    <form class="col mx-auto col-11 background p-4" v-on:submit.prevent="registerUser">
+        <div class="d-flex flex-column">
+            <div class="d-flex flex-row flex-wrap justify-content-between">
+                <div class="col-5 m-1">
+                    <h2>User information</h2>
+                    <div class="form-group">
+                        <input v-model="userData.firstname" class="form-control" placeholder="Firstname">
+                        <span class="text-danger"></span>
+                    </div>
+                    <div class="form-group mt-3">
+                        <input v-model="userData.lastname" class="form-control" placeholder="Lastname">
+                        <span class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label>Birthday:</label>
+                        <input v-model="userData.dateOfBirth" type="date" class="form-control" placeholder="Lastname">
+                        <span class="text-danger"></span>
+                    </div>
+                    <div class="form-group mt-3">
+                        <input v-model="userData.username" type="email" class="form-control" placeholder="E-mail">
+                        <span class="text-danger"></span>
+                    </div>
+                    <div class="form-group mt-3">
+                        <input type="password" v-model="userData.password" class="form-control" placeholder="Password">
+                        <span class="text-danger"></span>
+                    </div>
+                    <div class="form-group mt-3">
+                        <input type="password" v-model="userData.repeatPassword" class="form-control" placeholder="Repeat password">
+                        <span class="text-danger"></span>
+                    </div>
+                </div>
+                <div class=" col-6">
+                    <h2>Adress information</h2>
+                    <div class="form-group">
+                        <input v-model="userData.address.streetname" class="form-control" placeholder="Streetname" type="text">
+                        <span class="text-danger"></span>
+                    </div>
+                    <div class="form-group mt-3">
+                        <input v-model="userData.address.houseNumber" class="form-control" placeholder="HouseNumber" type="text">
+                        <span class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group mt-3">
+                        <input v-model="userData.address.postalCode" class="form-control" placeholder="PostalCode" type="text">
+                        <span class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label>Country: </label>
+                        <select v-model="userData.address.country" v-on:change="CreateSortedCities" class="form-select">
+                            <option v-for="country in countries">{{country}}</option>
+                        </select>
+                        <span class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label>City: </label>
+                        <select v-model="userData.address.city" class="form-select">
+                            <option v-for="city in cities">{{city}}</option>
+                        </select>
+                        <span class="text-danger"></span>
+                    </div>
+                </div>
+
+            </div>
+            <div><button type="submit" class="btn btn-primary mt-3">Submit</button></div>
+        </div>
+    </form>
+</div>
+@section scripts{ 
+    <script>
+        var countryApi = "https://countriesnow.space/api/v0.1/countries/";
+        var registerApi = "https://localhost:44394/api/Accounts/Register";
+        var loginApi = "https://localhost:44394/api/Accounts/Login";
+     
+        var app = new Vue({
+            el: "#app",
+            data: {
+                error: false,
+                errors: null,
+                errorMessage: "",
+                countriesData: null,
+                countries: [],
+                cities:[],
+                userData: {                    
+                    username: "",
+                    firstname: "",
+                    lastname: "",
+                    password: "",
+                    dateOfBirth: new Date().toISOString().substring(0,10),
+                address: {
+                    streetname: "",
+                    houseNumber: "",
+                    postalCode: "",
+                    city: "",
+                    country: "Belgium"                   
+                }
+                },
+                user: { username: "", password: "" }
+            },
+            created: async function () {
+                await this.getCountries(countryApi);
+                await this.CreateSortedCities();
+                
+            },
+            methods: {
+                getCountries: async function (apiUrl) {
+                    
+                    let result = await axios.get(apiUrl)
+                        .then(result => result)
+                        .catch(error => {
+                            this.error = true;
+                            this.errorMessage = error;
+                        })
+                    if (this.error == false) {
+                        this.countriesData = result.data.data;
+                        this.countries = this.createSortedCountries(result.data.data);                                             
+                    }
+                },               
+                createSortedCountries: function (data) {
+                    let countries = [];
+                    data.forEach(countrie => countries.push(countrie.country));
+                    countries.sort();
+                    return countries;
+                },
+                CreateSortedCities:function() {
+                    let cities = [];
+                    this.countriesData.forEach(countrie => {
+                        if (countrie.country == this.userData.address.country) {
+                            this.cities = countrie.cities;
+                        }
+                    });
+                    cities.sort();
+                    return cities;
+                },
+                registerUser: async function () {
+                    this.error = false;
+                    await axios.post(registerApi, this.userData)
+                        .then(response => response)
+                        .catch(error => {
+                            this.error = true;
+                            this.errors = error;
+                            this.errorMessage = error.response.data.errors;
+                        })
+                                      
+                    if (this.error == false) {
+                        this.succes = true;
+                        this.user.username = this.userData.username;
+                        this.user.password = this.userData.password;
+                        this.login();
+                    } else {
+                        let error = "";
+                        if (typeof this.errors.response.data.errors != "object") {
+                            this.errorMessage = {
+                                errors: []
+                            }
+                            if (this.errors.response.data.length > 100) error = "Something went wrong!!";
+                            else error = this.errors.response.data;
+                            this.errorMessage.errors.push(error[0]);
+                        } else {
+                            this.errorMessage = this.errors.response.data.errors;
+                        }
+                    }
+                },
+                login: async function () {                    
+                    let response = "";
+                    response = await axios.post(loginApi, this.user)
+                        .then(response => response.data)
+                        .catch(error => {
+                            this.error = true;
+                            this.errorMessages = error.response.data.errors;
+                        })                       
+                    if (this.error == false) {
+                        localStorage.setItem("token", response.token);
+                        localStorage.setItem("role", response.role);
+                        this.role = response.role;                        
+                        window.location.href = `../Account/LoggedIn?Role=${this.role}`;
+                    }
+                }
+            }
+            
+            
+            
+
+        })
+    </script>
+}

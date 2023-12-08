@@ -1,0 +1,79 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+
+<div id="app">
+    <div class="col col-lg-7 mx-auto background p-5">
+        <div v-if="hasError" v-for="errormessage in userMessage" class="alert-danger text-danger mb-4 p-2">{{errormessage[0]}}</div>        
+       <form v-on:submit.prevent="login()">
+            <div class="mb-3 row">
+            <label for="staticEmail" class="col-sm-2 col-form-label">Email</label>
+            <div class="col-sm-10">
+                <input type="email" v-on:keyup.enter="login()" v-model="user.username" class="form-control" placeholder="email@example.com">
+            </div>
+        </div>
+        <div class="mb-3 row">
+            <label for="inputPassword" class="col-sm-2 col-form-label">Password</label>
+            <div class="col-sm-10">
+                <input type="password" v-on:keyup.enter="login()" v-model="user.password" class="form-control" id="inputPassword">
+            </div>
+        </div>
+        <div class="col-auto">
+            <input type="submit"  class="btn btn-primary mb-3" value="Login">
+        </div>
+       </form>
+    </div>
+</div>
+
+
+@section scripts{
+
+    <script>
+        var apiURL = 'https://localhost:44394/api/Accounts/Login';
+        var login = new Vue({
+            el: '#app',
+            data: {
+                userMessage: [],
+                hasError: false,                
+                token: "",
+                role: "",
+                user: {username:"",password:""}
+            },
+            methods: {
+                login: async function () {
+                    this.hasError = false;
+                    let response = "";
+                    response = await axios.post(apiURL,this.user)
+                        .then(response => response.data)
+                        .catch(error => {
+                            this.hasError = true;
+                            this.errors = error;
+                        })
+                     
+                    if (this.hasError == false) {
+                        localStorage.setItem("token", response.token);
+                        localStorage.setItem("role", response.role);
+                        this.role = response.role;
+                        this.hasError = false;
+                        this.succes = true;
+                        window.location.href = `../Account/LoggedIn?Role=${this.role}`;
+                    } else {
+                        let error = "";
+                        if (typeof this.errors.response.data.errors != "object") {
+                            this.userMessage = {
+                                errors: []
+                            }
+                            if (this.errors.response.data.length > 100) error = "Something went wrong!!";
+                            else error = this.errors.response.data;
+                            this.userMessage.errors.push(error[0]);
+                        } else {
+                            this.userMessage = this.errors.response.data.errors;
+                        }
+                    }
+                },
+            }
+        });
+    </script>
+}

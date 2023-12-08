@@ -1,0 +1,316 @@
+﻿<div id="app" class="d-flex flex-column">
+    <div v-if="error" class="alert alert-danger w-50" role="alert">
+        <p class="text-danger" v-for="error in userMessage">{{error[0]}}</p>
+    </div>
+    <div v-if="succes" class="alert alert-success w-25" role="alert">
+        <p class="text-success">{{userMessage}}</p>
+    </div>
+    <form id="create-cocktail" class="col col-10 mx-auto background p-4" v-on:submit.prevent="createCocktail" enctype="multipart/form-data">
+
+        <div class="d-flex flex-row flex-wrap justify-content-between">
+            <div class="col-12 m-1">
+                <h1>Create cocktail</h1>
+                <div class="form-group mb-3">
+                    <label>Name:</label>
+                    <input v-model="cocktail.name" class="form-control">
+                    <span class="text-danger"></span>
+                </div>
+                <div class="form-group d-flex flex-row">
+                    <div class="d-flex flex-column w-25 me-3">
+                        <label>Category: </label>
+                        <select v-model="cocktail.cocktailCategoryId" class="form-select d-inline">
+                            <option v-for="category in categories" v-bind:value="category.id">{{category.name}}</option>
+                        </select>
+                    </div>
+                    <div class="d-flex flex-column  w-25 me-3">
+                        <label>glassType: </label>
+                        <select v-model="cocktail.glassTypeId" class="form-select d-inline">
+                            <option v-for="glasstype in glassTypes" v-bind:value="glasstype.id">{{glasstype.name}}</option>
+                        </select>
+                    </div>
+                    <div class="form-group d-flex flex-column w-50">
+                        <label>Picture: </label>
+                        <input ref="image" type="file" class="form-control" />
+                    </div>
+                </div>
+                <div class="form-group">
+
+                </div>
+
+                <div class="form-group mt-2">
+                    <h4>Current ingredients</h4>
+                    <div class="preview mb-3" id="all-ingredients">
+                        <p class="item" v-for="ingredient in currentIngredientsDisplay" v-on:click="itemToRemove">
+                            {{ingredient.amount}} {{ingredient.measuringUnit}} {{ingredient.ingredient}}
+                        </p>
+                    </div>
+                    <div class="form-group d-flex flex-row flex-wrap">
+                        <div class="form-group d-flex flex-row">
+                            <div class="d-flex flex-column me-3">
+                                <label>Ingredient: </label>
+                                <select v-model="ingredientToAdd.ingredientId" class="form-select d-inline" id="add-ingredient">
+                                    <option v-for="ingredient in ingredients" v-bind:value="ingredient.id">{{ingredient.name}}</option>
+                                </select>
+                            </div>
+                            <div class="d-flex flex-column  me-3">
+                                <label>quantity: </label>
+                                <input type="text" v-model="ingredientToAdd.amount" class="form-control" />
+                            </div>
+                            <div class="d-flex flex-column me-3">
+                                <label>Unit: </label>
+                                <select v-model="ingredientToAdd.measuringUnitId" class="form-select d-inline" id="add-unit">
+                                    <option v-for="measuringUnit in measuringUnits" v-bind:value="measuringUnit.id">{{measuringUnit.name}}</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group mt-2 mt-4 text-nowrap">
+                            <a class="btn btn-success me-2" v-on:click="addIngredient">+Add</a>
+                            <a class="btn btn-danger" v-on:click="removeIngredient">Remove</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="d-flex flex-row flex-wrap justify-content-between">
+                    <div class="form-group mt-3 w-50">
+                        <h4>Current instructions</h4>
+                        <div class="vh-25 preview mb-3" id="all-instructions">
+                            <p class="item" v-for="instruction in cocktail.instructions" v-on:click="itemToRemove">
+                                {{instruction}}
+                            </p>
+                        </div>
+                        <div class="d-flex flex-row flex-wrap">
+                            <div class="d-flex flex-column me-3">
+                                <label>instruction:</label>
+                                <input type="text" v-model="instruction" class="form-control" placeholder="instruction">
+                            </div>
+                            <div class="form-group mt-2 mt-4 d-flex flex-nowrap">
+                                <a class="btn btn-success me-2" v-on:click="addInstruction">+Add</a>
+                                <a class="btn btn-danger" v-on:click="removeInstruction">Remove</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group mt-lg-5">
+                        <h3>Tools</h3>
+                        <div class="d-flex flex-wrap">
+                            <label class="d-flex flex-row me-2 form-check" v-for="tool in tools">
+                                <input type="checkbox" v-bind:id="tool.id" class="tool form-check-input me-2">
+                                <label v-bind:for="tool.id">{{tool.name}}</label>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <button type="submit" class="btn btn-primary mt-3">Submit</button>
+        </div>
+    </form>
+</div>
+
+@section scripts{ 
+    <script>
+        var cocktailApiURL = 'https://localhost:44394/api/Cocktails';
+        var ingredientApiURL = 'https://localhost:44394/api/Ingredients';
+        var categoryApiURL = 'https://localhost:44394/api/Categories';
+        var glassTypeApiURL = 'https://localhost:44394/api/GlassTypes';
+        var measuringUnitsApiURL = 'https://localhost:44394/api/MeasuringUnits';
+        var toolsApiURL = 'https://localhost:44394/api/Tools';
+        var axiosConfig = {
+            headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+        };
+        var app = new Vue({
+            el: "#app",
+            data: {
+                error: false,
+                succes:false,
+                errors: null,
+                errorMessage: "",
+                userMessage:[],
+                ingredients: null,
+                categories: null,
+                measuringUnits: null,
+                glassTypes: null,
+                tools:null,
+                cocktail: {
+                    name: "",
+                    cocktailCategoryId:"",
+                    instructions: [],
+                    glassTypeId: "",
+                    tools: [],
+                    ingredients:[]
+                },
+                ingredientToAdd: {
+                    ingredientId: "",
+                    amount: "",
+                    measuringUnitId: ""
+                },
+                currentIngredientsDisplay:[],                
+                toRemove: "",
+                instruction: "",
+            },
+            created: async function () {
+                let token = localStorage.getItem("token");
+                if (token == null) {
+                    window.location.href = "/account/login";
+                }               
+               
+                this.ingredients = await this.getItems(ingredientApiURL);
+                this.categories = await this.getItems(categoryApiURL);
+                this.glassTypes = await this.getItems(glassTypeApiURL);
+                this.measuringUnits = await this.getItems(measuringUnitsApiURL);
+                this.glassTypes = await this.getItems(glassTypeApiURL);
+                this.tools = await this.getItems(toolsApiURL);
+            },
+            methods: {
+                getItems: async function (apiURL) {
+                    let response = "";
+                    response = await axios.get(apiURL)
+                        .then(response => response)
+                        .catch(error => {
+                            console.log(error);
+                            this.error = true;
+                        })
+                        .finally(() => { this.isLoaded = true; })
+                    if (this.error == false) {
+                        return response.data;
+                    }
+                },
+                addInstruction: function (e) {
+                    if (this.instruction.trim() != "") {
+                        this.cocktail.instructions.push(this.instruction);
+                        this.instruction = "";
+                    }
+
+                },
+                removeInstruction: function () {                   
+                    this.cocktail.instructions.find((i,index) => {
+                        if (this.toRemove == i) {
+                            this.cocktail.instructions.splice(index, 1);
+                            return true;
+                        } 
+                    })
+                             
+                },
+                removeIngredient: function () {                    
+                    this.currentIngredientsDisplay.find((i, index) => {
+                        let stringtoFind = `${i.amount??""} ${i.measuringUnit} ${i.ingredient}`;
+                        if (this.toRemove == stringtoFind.trim()) {
+                            this.currentIngredientsDisplay.splice(index, 1);
+                            this.cocktail.ingredients.splice(index, 1);
+                            return true;
+                        }
+                    })
+                   
+                },
+                addIngredient: function () {
+                    let selectIngredient = document.getElementById("add-ingredient");
+                    let selectUnit = document.getElementById("add-unit");
+                    let ingredientToAddDisplay = {
+                        ingredient: selectIngredient.options[selectIngredient.selectedIndex].text,
+                        amount: this.ingredientToAdd.amount,
+                        measuringUnit: selectUnit.options[selectUnit.selectedIndex].text
+                    };
+
+                    let ingredientToAdd = {
+                        ingredientId: this.ingredientToAdd.ingredientId,
+                        amount: this.ingredientToAdd.amount,
+                        measuringUnitId: this.ingredientToAdd.measuringUnitId
+                    };
+                    this.currentIngredientsDisplay.push(ingredientToAddDisplay);
+                    this.cocktail.ingredients.push(ingredientToAdd);
+                },
+                itemToRemove: async function (e) {
+                    this.resetColor("all-instructions");
+                    this.resetColor("all-ingredients");
+                    this.toRemove = "";
+                    this.toRemove = e.currentTarget.innerText;
+                    e.currentTarget.classList.add("active");
+                },
+                resetColor: function (id) {
+                    let instructions = document.getElementById(id);
+                    for (i = 0; i < instructions.children.length; i++) {
+                        instructions.children[i].classList.remove("active");
+                    }
+
+                    
+                },
+                resetAll: function () {
+                    this.cocktail = {
+                        name: "",
+                        cocktailCategoryId: "",
+                        instructions: [],
+                        glassTypeId: "",
+                        tools: [],
+                        ingredients: []
+                    };
+                    this.ingredientToAdd = {
+                        ingredientId: "",
+                        amount: "",
+                        measuringUnitId: ""
+                    };
+                    this.currentIngredientsDisplay = [],
+                    this.toRemove = "";
+                    this.instruction = "";
+                    let tools = document.getElementsByClassName("tool");
+                    this.cocktail.tools = [];
+                    [].forEach.call(tools, tool => {                        
+                        tool.checked = false;
+                    });
+                },                
+                createCocktail: async function () {
+                    this.succes = false;
+                    this.error = false;
+                    this.errorMessage = null;
+
+                    let formData = new FormData();
+                    let image = this.$refs.image.files[0] == "undefined" ? null : this.$refs.image.files[0];
+                    let tools = document.getElementsByClassName("tool");
+                    this.cocktail.tools = [];
+                    [].forEach.call(tools,tool => {
+                        if (tool.checked == true) {
+                            this.cocktail.tools.push(tool.id);
+                        }
+                    });
+
+                    formData.append("Name", this.cocktail.name);
+                    formData.append("CocktailCategoryId", this.cocktail.cocktailCategoryId);
+                    formData.append("Picture", image);                    
+                    formData.append("Instrucktions", this.cocktail.instructions.join(";"));            
+                    
+                    formData.append("GlassTypeId", this.cocktail.glassTypeId);
+                    this.cocktail.tools.forEach(t => {
+                        formData.append("Tools",t);})
+
+                    this.cocktail.ingredients.forEach(i => {
+                        formData.append("Ingredient", JSON.stringify(i))
+                    });                    
+
+                    await axios.post(cocktailApiURL, formData, axiosConfig)
+                        .then(response => response)
+                        .catch(error => {
+                            this.error = true;
+                            this.errors = error;
+                        })                     
+
+                    if (this.error == false) {
+                        this.succes = true;
+                        this.userMessage = "Cocktail created!!!!";
+                        this.resetAll();
+
+                    } else {
+                        let error = "";
+                        if (typeof this.errors.response.data.errors != "object") {
+                            this.userMessage = {
+                                errors:[]
+                            }
+                            if (this.errors.response.data.length > 100) error = "Cocktail not added!!";
+                            else error = this.errors.response.data;
+                            this.userMessage.errors.push(error);
+                        } else {
+                            this.userMessage = this.errors.response.data.errors;
+                        }
+                    }
+                }
+                
+            }
+        })
+    </script>
+}

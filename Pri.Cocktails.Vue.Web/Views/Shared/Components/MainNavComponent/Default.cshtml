@@ -1,0 +1,79 @@
+﻿@using Pri.Cocktails.Vue.Web.ViewModels.Components.menu;
+@model NavigationVm;
+
+
+
+
+<div class="collapse navbar-collapse" id="navbarSupportedContent">
+    <ul class="navbar-nav flex-grow-1">
+        @foreach (var mainNav in Model.MainMenu)
+        {
+            <li class="nav-item" id="@Html.Raw(mainNav.IsActive ? "active-menu-item": "")">
+                <a class="nav-link text-dark" asp-area="" asp-controller="@mainNav.Controller" asp-action="@mainNav.Action">
+                    <i class="@Html.Raw(mainNav.IconHTML)"></i>@mainNav.Text
+                </a>
+            </li>
+        }
+
+
+        @if (!String.IsNullOrEmpty(Model.Role))
+        {
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-house-user me-1"></i>My place
+                </a>
+                <ul id="my-menu" class="dropdown-menu dropdown-menu-lg-start" aria-labelledby="navbarDropdownMenuLink">
+                    @foreach (var mainNav in Model.UserSubMenu)
+                    {
+                        @if (Model.Role == "user" || Model.Role == "admin")
+                        {
+                            <li class="nav-item" id="@Html.Raw(mainNav.IsActive ? "active-menu-item": "")">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="@mainNav.Controller" asp-action="@mainNav.Action">
+                                    <i class="@Html.Raw(mainNav.IconHTML)"></i>@mainNav.Text
+                                </a>
+                            </li>
+                        }
+                    }
+
+                    @foreach (var mainNav in Model.AdminSubMenu)
+                    {
+                        @if (Model.Role == "admin")
+                        {
+                            <li class="nav-item" id="@Html.Raw(mainNav.IsActive ? "active-menu-item": "")">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="@mainNav.Controller" asp-action="@mainNav.Action">
+                                    <i class="@Html.Raw(mainNav.IconHTML)"></i>@mainNav.Text
+                                </a>
+                            </li>
+                        }
+                    }
+
+                </ul>
+            </li>
+        }
+
+    </ul>
+    <div id="navbar">
+        <ul class="navbar-nav flex-grow-1">
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-user fa-lg"></i>
+                </a>
+                <ul id="account-menu" class="dropdown-menu dropdown-menu-lg-start text-start" aria-labelledby="navbarDropdownMenuLink">
+                    @foreach (var mainNav in Model.LoginSubMenu)
+                    {
+                       
+                    <li class="nav-item" id="@Html.Raw(mainNav.IsActive ? "active-menu-item": "")">
+                        <a class="nav-link text-dark" asp-area="" asp-controller="@mainNav.Controller" asp-action="@mainNav.Action">
+                            @mainNav.Text
+                        </a>
+                    </li>
+                        
+                    }
+                 
+                </ul>
+            </li>
+        </ul>
+
+    </div>
+</div>
+

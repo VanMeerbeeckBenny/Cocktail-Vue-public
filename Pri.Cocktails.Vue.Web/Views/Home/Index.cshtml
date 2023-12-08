@@ -1,0 +1,45 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div id="app">
+    <div class="black-and-white d-block text-center p-5 w-75">
+        <h1 class="display-4">Drink a cocktail and enjoy a quote !!</h1>
+        <div class=" w-75 m-auto"><q class="quote">{{quote}}</q></div>
+    </div>
+</div>
+
+@section scripts{ 
+    <script>
+        var cuckApiURL = "https://api.chucknorris.io/jokes/random";
+        var app = new Vue({
+            el: "#app",
+            data: {
+                error: false,
+                errormessage: "",
+                isLoaded: false,
+                quote: null,
+            },
+            created: 
+                async function() {
+                    this.quote = await this.getQuote();
+                },
+            methods: {
+                getQuote: async function () {
+                    this.error= false;
+                    let response = "";
+                    response = await axios.get(cuckApiURL)
+                        .then(response => response)
+                        .catch(error => {
+                            error = true;
+                            errormessage = "Chuck has a problem";
+                        })                        
+                    if (this.error == false) return response.data.value;
+                        
+                }
+            }
+      
+
+        })
+    </script>
+}

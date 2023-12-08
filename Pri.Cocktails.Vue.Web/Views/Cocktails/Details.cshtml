@@ -1,0 +1,93 @@
+﻿<div id="cocktail-details" class="mx-auto p-5" >
+    <article>
+        <section v-for="cocktail in cocktails" class="black-and-white">
+              <div class="d-flex flex-column">
+                <div class="d-flex align-items-center mb-2">
+                    <div class="d-flex">
+                        <div>
+                            <ul class="ingredients-list">
+                                <li v-for="ingredient in cocktail.ingredients">
+                                    <strong>{{ingredient.name}}</strong>
+                                    <ul><li>{{ingredient.amount}}{{ingredient.unit}}</li></ul>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="m-lg-5">
+                            <div class="d-flex flex-column justify-content-center">
+                                <h3 class="title">{{cocktail.name}}</h3>
+                                <img class="cocktails-images picture-big" v-bind:src="cocktail.picture" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="d-flex flex-row w-75 text-wrap">                    
+                    <ul class="instruction-list">
+                        <li v-for="string in cocktail.instrucktions" style="list-style:decimal">{{string}}</li>
+                    </ul>
+                </div>
+            </div>
+
+                <div class="d-flex flex-column ">
+                    <div class="d-flex flex-column">
+                        <h3 class="text-center">Ingredients</h3>
+                        <div class="d-flex flex-row flex-wrap">
+                            <div class="ingredient" v-for="ingredient in cocktail.ingredients">
+                                <div class="text-center align-items-center">
+                                    <img class="ingredient-images" v-bind:src="ingredient.picture" />
+                                    <p>{{ingredient.name}} </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div div class="d-flex flex-column">
+                        <h3 class="text-center">tools</h3>
+                        <div class="d-flex flex-row flex-wrap">
+                            <div class="tool" v-for="tool in cocktail.tools">
+                                <div class="text-center align-items-center">
+                                    <img class="tool-images" v-bind:src="tool.picture" />
+                                    <p>{{tool.name}}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+           
+        </section>
+    </article>
+
+</div>
+@section scripts{
+    <script>
+    var app = new Vue({
+        el: '#cocktail-details',
+        data: {
+            CocktailsapiURL: 'https://localhost:44394/api/Cocktails/',
+            title: "Hello from vue",
+            cocktails: null,
+            error: false,
+            errorMessage: "",
+        },
+        created: async function () {
+            this.cocktails = await this.getCocktails(this.CocktailsapiURL);
+        },
+        methods: {
+            getCocktails: async function (apiUrl) {
+
+                let response = "";
+                response = await axios.get(`${apiUrl}@ViewBag.id`)
+                    .then(response => response)
+                    .catch(error => {
+                        this.error = true;
+                        this.errorMessage = error;
+                    })
+                if (this.error !== true) {
+                    return response.data
+                }
+            }
+        }
+    })
+    </script>
+}
